@@ -1,6 +1,9 @@
 package com.coder520.jxc.controller;
 
+import com.coder520.jxc.entity.Role;
 import com.coder520.jxc.entity.User;
+import com.coder520.jxc.service.RoleService;
+import com.coder520.jxc.service.UserService;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.shiro.SecurityUtils;
 import org.apache.shiro.authc.UsernamePasswordToken;
@@ -9,9 +12,11 @@ import org.springframework.validation.BindingResult;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
+import javax.annotation.Resource;
 import javax.servlet.http.HttpSession;
 import javax.validation.Valid;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 
@@ -23,6 +28,12 @@ import java.util.Objects;
 @RestController
 @RequestMapping("/user")
 public class UserController {
+
+    @Resource
+    private UserService userService;
+
+    @Resource
+    private RoleService roleService;
 
     /**
      * 用户登录
@@ -54,6 +65,13 @@ public class UserController {
         UsernamePasswordToken token = new UsernamePasswordToken(user.getUserName(),user.getPassword());
         try{
             subject.login(token);
+            String userName = (String) SecurityUtils.getSubject().getPrincipal();
+            User currentUser = userService.findByUserName(userName);
+            //此处等重构的时候存入redis，还有验证码，还可以设置过期时间
+            session.setAttribute("currentUser",currentUser);
+            List<Role> roleList = roleService.findRolesByUserId(currentUser.getId());
+            map.put("roleList",roleList);
+            map.put("roleSize",roleList.size());
             map.put("success",true);
             return map;
         }catch (Exception e){
@@ -62,5 +80,20 @@ public class UserController {
             map.put("errorInfo","用户名或者密码错误");
             return map;
         }
+    }
+
+    /**
+     * 保存角色信息
+     * @param roleId 角色id
+     * @param session session
+     * @return 返回map类型
+     */
+    @RequestMapping("/saveRole")
+    public Map<String,Object> saveRole(Integer roleId,HttpSession session){
+        Map<String,Object> map = new HashMap<>();
+        Role currentRole = roleService.findById(roleId);
+        session.setAttribute("currentRole",currentRole);
+        map.put("success",true);
+        return map;
     }
 }

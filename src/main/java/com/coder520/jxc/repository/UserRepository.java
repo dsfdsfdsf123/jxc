@@ -5,6 +5,7 @@ import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 
 /**
+ * 用户repository接口
  * @author liugang
  * @create 2018/12/5 22:17
  **/

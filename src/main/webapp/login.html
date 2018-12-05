@@ -30,13 +30,34 @@ canvas{z-index:-1;position:absolute;}
               imageCode:$("#imageCode").val()
           },function (result) {
               if (result.success){
-                  alert("登录成功！");
+                  if (result.roleSize==1){
+                      var roleId = result.roleList[0].id;
+                      $.post("/user/saveRole",{
+                          roleId:roleId
+                      },function (result) {
+                          if (result.success){
+                              window.location.href="/main.html";
+                          }
+                      },"json");
+                  } else{
+                      $("#roleList").empty();
+                      var roles = result.roleList;
+                      for (var i=0;i<roles.length;i++){
+                          if (i==0){
+                              $("#roleList").append("<input type='radio' checked=true name='role' value='"+roles[i].id+"'/>"+roles[i].name+"&nbsp;&nbsp;");
+                          } else {
+                              $("#roleList").append("<input type='radio' name='role' value='"+roles[i].id+"'/>"+roles[i].name+"&nbsp;&nbsp;");
+                          }
+                          document.getElementById("light").style.display="block";
+                          document.getElementById("fade").style.display="block";
+                      }
+                  }
+
               } else{
                   alert(result.errorInfo);
               }
           },"json");
       });
-	  
 
 	});
 	
@@ -80,6 +101,18 @@ canvas{z-index:-1;position:absolute;}
           <input type="button" value="提交" onclick="saveRole()"/>
 	</div> 
 <div id="fade" class="black_overlay"> 
-</div> 
+</div>
+<script>
+    function saveRole() {
+        roleId = $("input[name='role']:checked").val();
+        $.post("/user/saveRole",{
+            roleId:roleId
+        },function (result) {
+            if (result.success){
+                window.location.href="/main.html";
+            }
+        },"json");
+    }
+</script>
 </body>
 </html>
