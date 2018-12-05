@@ -1,6 +1,7 @@
 package com.coder520.jxc.entity;
 
 import javax.persistence.*;
+import javax.validation.constraints.NotEmpty;
 
 /**
  * 用户实体
@@ -14,8 +15,12 @@ public class User {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Integer id;
+
+    @NotEmpty(message = "请输入用户名")
     @Column(length = 50)
     private String userName;
+
+    @NotEmpty(message = "请输入密码")
     @Column(length = 50)
     private String password;
     @Column(length = 50)
