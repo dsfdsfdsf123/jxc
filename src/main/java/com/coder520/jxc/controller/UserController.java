@@ -9,6 +9,7 @@ import org.apache.shiro.SecurityUtils;
 import org.apache.shiro.authc.UsernamePasswordToken;
 import org.apache.shiro.subject.Subject;
 import org.springframework.validation.BindingResult;
+import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
@@ -95,5 +96,17 @@ public class UserController {
         session.setAttribute("currentRole",currentRole);
         map.put("success",true);
         return map;
+    }
+
+    /**
+     * 加载当前用户信息
+     * @param session
+     * @return
+     */
+    @GetMapping("/loadUserInfo")
+    public String loadUserInfo(HttpSession session){
+        User currentUser = (User) session.getAttribute("currentUser");
+        Role currentRole = (Role) session.getAttribute("currentRole");
+        return "欢迎您："+currentUser.getTrueName()+"&nbsp;[&nbsp;"+currentRole.getName()+"&nbsp;]&nbsp;";
     }
 }
