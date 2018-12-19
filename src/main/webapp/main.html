@@ -42,6 +42,14 @@
             window.setInterval("showTime()",1000);
             //加载用户信息
             $("#userInfo").load("/user/loadUserInfo");
+
+            $("#tree").tree({
+                lines:true,
+                url:'/user/loadMenuInfo?parentId=-1',
+                onLoadSuccess:function () {
+                    $("#tree").tree("expandAll");
+                }
+            });
         });
 
     </script>
@@ -65,7 +73,8 @@
         中间
     </div>
     <div region="west" style="width: 200px;" title="导航菜单" split="true" iconCls="icon-navigation">
-        西
+        <ul id="tree" class="easyui-tree" style="padding: 10px;">
+        </ul>
     </div>
     <div region="south" style="height: 30px;padding: 5px" align="center">
         Copyright @ 2012-2017 南通小锋网络科技有限公司  版权所有

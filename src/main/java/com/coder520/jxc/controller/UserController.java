@@ -1,17 +1,19 @@
 package com.coder520.jxc.controller;
 
+import com.coder520.jxc.entity.Menu;
 import com.coder520.jxc.entity.Role;
 import com.coder520.jxc.entity.User;
+import com.coder520.jxc.service.MenuService;
 import com.coder520.jxc.service.RoleService;
 import com.coder520.jxc.service.UserService;
+import com.google.gson.JsonArray;
+import com.google.gson.JsonObject;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.shiro.SecurityUtils;
 import org.apache.shiro.authc.UsernamePasswordToken;
 import org.apache.shiro.subject.Subject;
 import org.springframework.validation.BindingResult;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
 import javax.annotation.Resource;
 import javax.servlet.http.HttpSession;
@@ -35,6 +37,9 @@ public class UserController {
 
     @Resource
     private RoleService roleService;
+
+    @Resource
+    private MenuService menuService;
 
     /**
      * 用户登录
@@ -108,5 +113,72 @@ public class UserController {
         User currentUser = (User) session.getAttribute("currentUser");
         Role currentRole = (Role) session.getAttribute("currentRole");
         return "欢迎您："+currentUser.getTrueName()+"&nbsp;[&nbsp;"+currentRole.getName()+"&nbsp;]&nbsp;";
+    }
+
+    /**
+     * 加载权限菜单
+     * @param session
+     * @param parentId
+     * @return
+     * @throws Exception
+     */
+    @ResponseBody
+    @PostMapping("/loadMenuInfo")
+    public String loadMenuInfo(HttpSession session,Integer parentId)throws Exception{
+        Role currentRole = (Role) session.getAttribute("currentRole");
+        return getAllMenuByParentId(parentId,currentRole.getId()).toString();
+    }
+
+    /**
+     * 递归
+     * 获取所有菜单信息
+     * @param parentId
+     * @param roleId
+     * @return
+     */
+    public JsonArray getAllMenuByParentId(Integer parentId,Integer roleId){
+        JsonArray jsonArray = this.getMenuByParentId(parentId,roleId);
+        for (int i=0;i<jsonArray.size();i++){
+            JsonObject jsonObject = (JsonObject) jsonArray.get(i);
+            if ("open".equals(jsonObject.get("state").getAsString())){
+                continue;
+            }else{
+                jsonObject.add("children",getAllMenuByParentId(jsonObject.get("id").getAsInt(),roleId));
+            }
+        }
+        return jsonArray;
+    }
+
+    /**
+     * 根据父节点和用户角色id菜单
+     * @param parentId
+     * @param roleId
+     * @return
+     */
+    public JsonArray getMenuByParentId(Integer parentId,Integer roleId){
+        List<Menu> menuList = menuService.findByParentIdAndRoleId(parentId,roleId);
+        JsonArray jsonArray = new JsonArray();
+        for (Menu menu:menuList){
+            JsonObject jsonObject = new JsonObject();
+            //节点id
+            jsonObject.addProperty("id",menu.getId());
+            //节点名称
+            jsonObject.addProperty("text",menu.getName());
+            //叶子节点
+            if (menu.getState()==1){
+                jsonObject.addProperty("state","closed");
+            }else{
+                jsonObject.addProperty("state","open");
+            }
+            //节点图标
+            jsonObject.addProperty("iconCls",menu.getIcon());
+            //扩展属性
+            JsonObject attributeObject = new JsonObject();
+            //菜单请求地址
+            attributeObject.addProperty("url",menu.getUrl());
+            jsonObject.add("attributes",attributeObject);
+            jsonArray.add(jsonObject);
+        }
+        return jsonArray;
     }
 }
