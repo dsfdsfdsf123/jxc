@@ -28,6 +28,20 @@ public class User {
     @Column(length = 1000)
     private String remarks;
 
+    /**
+     * 所拥有的角色
+     */
+    @Transient
+    private String roles;
+
+    public String getRoles() {
+        return roles;
+    }
+
+    public void setRoles(String roles) {
+        this.roles = roles;
+    }
+
     public Integer getId() {
         return id;
     }
